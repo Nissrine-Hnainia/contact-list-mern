@@ -12,6 +12,15 @@ const User = new Schema({
     },
     age: {
         type: Number
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true
     }
 })
 

@@ -5,6 +5,15 @@ const router = express.Router()
 //2-require mongoose model
 const User = require('../models/User')
 
+//3-require bcrypt to crypt the password
+const bcrypt = require('bcryptjs')
+
+//require jsonwebtoken to generate the token
+const jwt = require('jsonwebtoken')
+
+//require auth middleware to check access
+const auth = require('../middlewares/auth')
+
 //API: "/api/users/create-user"
 //desc: create new user
 //access: public
@@ -17,12 +26,60 @@ const User = require('../models/User')
 //     .catch((error) => res.status(500).send(error))
 // })
 
+// router.post('/create-user', async (req, res) => {
+//     const {name, age, bio} = req.body
+//     try {
+//         const user = await new User ({name, age, bio})
+//         await user.save()
+//         return res.status(200).send(user)
+//     } catch (error) {
+//         return res.status(500).send({msg: "Server error"})
+//     }
+// })
+
 router.post('/create-user', async (req, res) => {
-    const {name, age, bio} = req.body
+    const {name, age, bio, email, password} = req.body
     try {
-        const user = await new User ({name, age, bio})
+        //check if all fields are not empty
+        if ( !name || !age || !bio || !email || !password) {
+            return res.status(404).send({msg: "Please enter your credentials"})
+        }
+
+        // check if user already exists
+        let user = await User.findOne({email})
+
+        if (user) {
+            return res.status(400).send({msg: "User already exists"})
+        }
+
+        //create user in DB
+        user = await new User(req.body) 
+        console.log(user)
+
+
+        //1.crypt the pass 
+        // 1.1 create the salt
+        const salt = 10
+
+        //1.2 hash the pass
+        const hashedPass = await bcrypt.hash(password, salt)
+
+        //1.3 replace the password with hashedPass
+        user.password = hashedPass
+
+        //2.generate a token
+        //2.1 create the payload
+        const payload = {
+            id: user._id
+        }
+
+        //2.2 sign the token
+        const token = await jwt.sign(payload, process.env.secretOrKey, {expiresIn: "1 day"})
+
+        //save the user in db
         await user.save()
-        return res.status(200).send(user)
+
+        return res.status(200).send({msg: "User created successfully", user, token})
     } catch (error) {
         return res.status(500).send({msg: "Server error"})
     }
@@ -39,6 +96,52 @@ router.put("/edit/:id", (req, res) => {
     .then((result) => res.status(200).send(result))
     .catch((error) => res.status(500).send(error))
 })
+
+
+//API: "/api/users/login-user"
+//desc: login the user 
+//access: public
+
+router.post('/login-user', async (req, res) => {
+    const {email, password} = req.body
+    try {
+        //check if all fields are not empty
+        if ( !email || !password) {
+            return res.status(404).send({msg: "Please enter your credentials"})
+        }
+
+        // check if user already exists
+        const user = await User.findOne({email})
+
+
+        if (!user) {
+            return res.status(400).send({msg: "bad credentials"})
+        }
+
+        //check password
+        const isMatch = await bcrypt.compare(password, user.password)
+
+        if (!isMatch) {
+            return res.status(400).send({msg:"bad credentials"})
+        }
+
+        //2.generate a token
+        //2.1 create the payload
+        const payload = {
+            id: user._id
+        }
+
+        //2.2 sign the token
+        const token = await jwt.sign(payload, process.env.secretOrKey, {expiresIn: "1 day"})
+
+
+        return res.status(200).send({msg: "User logged-in successfully", user, token})
+    } catch (error) {
+        return res.status(500).send({msg: "Server error"})
+    }
+})
+
+
 
 //API: "/api/users/remove/:userId"
 //desc: find user by id and delete it
@@ -59,6 +162,17 @@ router.get("/", (req, res) => {
     .then((result) => res.status(200).send(result))
     .catch((error) => res.status(500).send(error))
 })
+
+// //API: "/api/users/profile"
+// //desc: get personal profile
+// //access: private
+router.get("/profile", auth, async (req, res) => {
+    try {
+        return res.status(200).send({user: req.user})
+    } catch (error) {
+        return res.status(500).send({msg:"Server error"})
+    }
+} )
 
 
 module.exports = router
