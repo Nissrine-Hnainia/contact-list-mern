@@ -16,7 +16,7 @@ const auth = async (req, res, next) => {
         //req.headers = kjlduhuebchjncjbehjbueb.jfnihijuihhih"i".ouheohoenh
 
         //decode the token to get the user payload
-        const decodedToken = await jwt.verify(token, process.env.secretOrKey) 
+        const decodedToken = await jwt.verify(token, process.env.secretOrKey)
 
         //decodedToken = { email: "hhhh", id :hhhhh}
 
@@ -27,7 +27,7 @@ const auth = async (req, res, next) => {
             return res.status(403).send({msg:"Access denied"})
         }
 
-        req.user = user
+        req.user = user 
         next()
     } catch (error) {
         return res.status(500).send({msg:"Server error"})

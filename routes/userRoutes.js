@@ -14,9 +14,6 @@ const jwt = require('jsonwebtoken')
 //require auth middleware to check access
 const auth = require('../middlewares/auth')
 
-//API: "/api/users/create-user"
-//desc: create new user
-//access: public
 
 // router.post("/create-user", (req, res) => {
 //     const {name, bio, age} = req.body
@@ -37,8 +34,12 @@ const auth = require('../middlewares/auth')
 //     }
 // })
 
-router.post('/create-user', async (req, res) => {
-    const {name, age, bio, email, password} = req.body
+
+//API: "/api/users/register"
+//desc: create new user
+//access: public
+router.post('/register', async (req, res) => {
+    const {name, age, bio, email, password} = req.body //body of the request
     try {
         //check if all fields are not empty
         if ( !name || !age || !bio || !email || !password) {
@@ -54,7 +55,6 @@ router.post('/create-user', async (req, res) => {
 
         //create user in DB
         user = await new User(req.body) 
-        console.log(user)
 
 
         //1.crypt the pass 
@@ -86,23 +86,10 @@ router.post('/create-user', async (req, res) => {
 })
 
 
-//API: "/api/users/edit/:id"
-//desc: find user by id and update
-//access: public
-router.put("/edit/:id", (req, res) => {
-    const {id} = req.params
-    const {name, age, bio} = req.body
-    User.findOneAndUpdate({id}, {$set:{name, age, bio}}, {new: true}) //{new :true} to get the updated version
-    .then((result) => res.status(200).send(result))
-    .catch((error) => res.status(500).send(error))
-})
-
-
-//API: "/api/users/login-user"
+//API: "/api/users/login"
 //desc: login the user 
 //access: public
-
-router.post('/login-user', async (req, res) => {
+router.post('/login', async (req, res) => {
     const {email, password} = req.body
     try {
         //check if all fields are not empty
@@ -142,18 +129,6 @@ router.post('/login-user', async (req, res) => {
 })
 
 
-
-//API: "/api/users/remove/:userId"
-//desc: find user by id and delete it
-//access: public
-router.delete("/remove/:userId" ,(req, res) => {
-    const {userId} = req.params
-    User.findOneAndDelete({userId})
-    .then((result) => res.status(200).send({msg:"user deleted"}))
-    .catch((error) => res.status(500).send(error))
-})
-
-
 //API: "/api/users/"
 //desc: get all users
 //access: public
@@ -172,7 +147,33 @@ router.get("/profile", auth, async (req, res) => {
     } catch (error) {
         return res.status(500).send({msg:"Server error"})
     }
-} )
+})
+
+
+//API: "/api/users/edit/:id"
+//desc: find user by id and update
+//access: public
+router.put("/edit/:id", (req, res) => {
+    const {id} = req.params
+    const {name, age, bio} = req.body
+    User.findOneAndUpdate({id}, {$set:{name, age, bio}}, {new: true}) //{new :true} to get the updated version
+    .then((result) => res.status(200).send(result))
+    .catch((error) => res.status(500).send(error))
+})
+
+
+
+//API: "/api/users/remove/:userId"
+//desc: find user by id and delete it
+//access: public
+router.delete("/remove/:userId" ,(req, res) => {
+    const {userId} = req.params
+    User.findOneAndDelete({userId})
+    .then((result) => res.status(200).send({msg:"user deleted"}))
+    .catch((error) => res.status(500).send(error))
+})
+
+
 
 
 module.exports = router

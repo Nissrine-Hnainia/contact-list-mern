@@ -1,29 +1,27 @@
 import axios from "axios"
-import { GET_USERS, USER_FAIL } from './actionsTypes';
+import { GET_USERS, LOAD_USER } from './actionsTypes';
 
 
 
-export const createUser = (newUser) => async(dispatch) => {
-    try {
-        await axios.post('/api/users/create-user', newUser) //newUser === req.body
-        dispatch(getUsers())
-    } catch (error) {
-        dispatch({
-            type: USER_FAIL,
-            payload: error
-        })
-    }
-}
+// export const createUser = (newUser) => async(dispatch) => {
+//     try {
+//         await axios.post('/api/users/create-user', newUser) //newUser === req.body
+//         dispatch(getUsers())
+//     } catch (error) {
+//         dispatch({
+//             type: USER_FAIL,
+//             payload: error
+//         })
+//     }
+// }
+
 
 export const updateUser = (id, userUpdate) => async(dispatch) => {
     try {
         await axios.put(`/api/users/edit/${id}`, userUpdate) //id === req.params AND userUpdate === req.body
         dispatch(getUsers())
     } catch (error) {
-        dispatch({
-            type: USER_FAIL,
-            payload: error
-        })
+        console.log(error)
     }
 }
 
@@ -32,10 +30,7 @@ export const deleteUser = (userId) => async(dispatch) => {
         await axios.delete(`/api/users/remove/${userId}`) //userId === req.params
         dispatch(getUsers())
     } catch (error) {
-        dispatch({
-            type: USER_FAIL,
-            payload: error
-        })
+        console.log(error)
     }
 }
 
@@ -48,9 +43,7 @@ export const getUsers = () => async(dispatch) => {
             payload: res.data
         })
     } catch (error) {
-        dispatch({
-            type: USER_FAIL,
-            payload: error
-        })
+        console.log(error)
     }
 }
+
